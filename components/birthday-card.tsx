@@ -49,8 +49,7 @@ export function BirthdayCard({ birthday, onUpdate, onDelete }: BirthdayCardProps
 
     setIsSendingTest(true)
     try {
-      console.log("[v0] Sending test email for:", birthday.name)
-
+      console.log("[birthday-remainder] Sending test email for:", birthday.name)
       const response = await fetch("/api/test-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -68,14 +67,14 @@ export function BirthdayCard({ birthday, onUpdate, onDelete }: BirthdayCardProps
         throw new Error(result.error || "Failed to send test email")
       }
 
-      console.log("[v0] Test email sent successfully")
+  console.log("[birthday-remainder] Test email sent successfully")
 
       toast({
         title: "Test email sent!",
         description: "Check your inbox to see the email template.",
       })
     } catch (error) {
-      console.error("[v0] Error sending test email:", error)
+  console.error("[birthday-remainder] Error sending test email:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to send test email. Please try again.",

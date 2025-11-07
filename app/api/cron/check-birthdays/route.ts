@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    console.log("[v0] Starting birthday check...")
+  console.log("[birthday-remainder] Starting birthday check...")
 
     // Get all birthdays
     const birthdaysSnapshot = await getDocs(collection(db, "birthdays"))
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
       ...doc.data(),
     })) as Birthday[]
 
-    console.log(`[v0] Found ${birthdays.length} birthdays to check`)
+  console.log(`[birthday-remainder] Found ${birthdays.length} birthdays to check`)
 
     // Get all users to map userId to email
     const usersSnapshot = await getDocs(collection(db, "users"))
@@ -73,18 +73,18 @@ export async function GET(request: Request) {
           }
         }
       } catch (error) {
-        console.error(`[v0] Error processing birthday ${birthday.id}:`, error)
+  console.error(`[birthday-remainder] Error processing birthday ${birthday.id}:`, error)
       }
     }
 
-    console.log(`[v0] Sending ${reminders.length} reminders...`)
+  console.log(`[birthday-remainder] Sending ${reminders.length} reminders...`)
 
     // Send all reminders
     const results = await Promise.all(reminders.map(({ email, person }) => sendBirthdayReminder(email, person)))
 
     const successCount = results.filter((r) => r.success).length
 
-    console.log(`[v0] Successfully sent ${successCount}/${reminders.length} reminders`)
+  console.log(`[birthday-remainder] Successfully sent ${successCount}/${reminders.length} reminders`)
 
     return NextResponse.json({
       success: true,
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
       timestamp: now.toISOString(),
     })
   } catch (error) {
-    console.error("[v0] Birthday check failed:", error)
+  console.error("[birthday-remainder] Birthday check failed:", error)
     return NextResponse.json({ error: "Failed to check birthdays" }, { status: 500 })
   }
 }

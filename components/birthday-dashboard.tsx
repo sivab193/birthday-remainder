@@ -77,7 +77,7 @@ export function BirthdayDashboard() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-semibold text-foreground">Your Birthdays</h2>
+            <h2 className="text-3xl font-semibold text-foreground">Your Connections</h2>
             <p className="text-muted-foreground mt-1">
               {birthdays.length} {birthdays.length === 1 ? "person" : "people"} tracked
             </p>

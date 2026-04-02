@@ -16,7 +16,7 @@ Dockerized background workers for the Event Reminder notification system. Uses R
 
 ```bash
 # 1. Edit your .env with actual values
-# 2. Place your serviceAccountKey.json in this directory
+# 2. Place your serviceAccountKey.json in this directory if you want Firestore mode
 
 # Build and start all services
 make build
@@ -27,6 +27,8 @@ make logs
 # Stop everything
 make down
 ```
+
+> If `serviceAccountKey.json` is missing, the scheduler will start in mock mode and push dummy notifications to Redis for local testing.
 
 *See `Makefile` for more commands (`make ps`, `make restart`, `make prune`).*
 

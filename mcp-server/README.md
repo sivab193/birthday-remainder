@@ -18,6 +18,8 @@ If `FIREBASE_CREDENTIALS` is not set, the server looks for `../serviceAccountKey
 
 ## Usage
 
+This server is optional. You only need it if you want the Model Context Protocol integration, not for the core frontend and backend notification system.
+
 ```bash
 # Direct
 npm start

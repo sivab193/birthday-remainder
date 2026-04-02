@@ -22,7 +22,7 @@ export function NotificationSettings() {
   const [verifyModalOpen, setVerifyModalOpen] = useState(false)
   const [verifyingChannel, setVerifyingChannel] = useState<"email" | "telegram" | "discord" | null>(null)
   const [verificationCode, setVerificationCode] = useState("")
-  const [sendingCode, setSendingCode] = useState(false)
+  const [sendingChannel, setSendingChannel] = useState<string | null>(null)
   const [checkingCode, setCheckingCode] = useState(false)
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export function NotificationSettings() {
 
   const sendCode = async (channel: "email" | "telegram" | "discord", identifier: string) => {
     if (!user) return
-    setSendingCode(true)
+    setSendingChannel(channel)
     try {
       const res = await fetch("/api/verify/send", {
         method: "POST",
@@ -85,7 +85,7 @@ export function NotificationSettings() {
     } catch (e) {
       toast({ title: "Error", description: "An unexpected error occurred.", variant: "destructive" })
     } finally {
-      setSendingCode(false)
+      setSendingChannel(null)
     }
   }
 
@@ -206,9 +206,9 @@ export function NotificationSettings() {
                size="sm" 
                variant="outline" 
                onClick={() => sendCode(channel, identifier)}
-               disabled={sendingCode || !identifier}
+               disabled={sendingChannel === channel || !identifier}
              >
-               {sendingCode ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Code"}
+               {sendingChannel === channel ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Code"}
              </Button>
            )}
            

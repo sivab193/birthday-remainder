@@ -5,19 +5,20 @@ import redis
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from shared.utils import compute_age_text, format_meet_date, get_event_label, get_portal_url
 
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=redis_host, port=6379, db=0)
 
 # SMTP Config
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-SMTP_PORT = int(os.getenv('SMTP_PORT', '465'))
+SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 SMTP_USER = os.getenv('SMTP_USER', '')
 SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
-SMTP_SSL = os.getenv('SMTP_SSL', 'true').lower() in ('true', '1', 'yes')
+SMTP_SSL = os.getenv('SMTP_SSL', 'false').lower() in ('true', '1', 'yes')
 SMTP_FROM = os.getenv('SMTP_FROM', SMTP_USER)
 
-PORTAL_URL = "https://er.siv19.dev/dashboard"
+PORTAL_URL = get_portal_url()
 
 def send_email(to_email, bday, user):
     if not SMTP_USER or not SMTP_PASSWORD:
@@ -32,34 +33,9 @@ def send_email(to_email, bday, user):
     unknown_year = bday.get('unknownYear', False)
     timezone = bday.get('timezone', '')
 
-    # Compute age/duration
-    age_text = ''
-    if not unknown_year and birthdate:
-        try:
-            import datetime
-            b_year = int(birthdate.split('-')[0])
-            age = datetime.datetime.now().year - b_year
-            if age > 0:
-                if event_type == 'anniversary':
-                    age_text = f"{age} {'year' if age == 1 else 'years'} together 💍"
-                elif event_type == 'birthday':
-                    age_text = f"Turning {age} 🎂"
-                else:
-                    age_text = f"{age} {'year' if age == 1 else 'years'} ago"
-        except Exception:
-            pass
-
-    # Format meet date
-    meet_text = ''
-    if meet_date:
-        try:
-            y, m, d = meet_date.split('-')
-            if int(y) > 1900:
-                meet_text = f"{d}/{m}/{y}"
-        except Exception:
-            pass
-
-    event_label = event_type.capitalize() if event_type != 'birthday' else 'Birthday'
+    age_text = compute_age_text(birthdate, event_type, unknown_year) or ''
+    meet_text = format_meet_date(meet_date) or ''
+    event_label = get_event_label(event_type)
 
     html = f"""
     <!DOCTYPE html>

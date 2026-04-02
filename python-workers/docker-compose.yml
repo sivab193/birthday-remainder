@@ -1,24 +1,43 @@
-version: "3.8"
 services:
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   scheduler:
-    build: ./scheduler
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
       - REDIS_HOST=redis
       - FIREBASE_CREDENTIALS=/app/serviceAccountKey.json
+      - CHECK_INTERVAL=60
     volumes:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "main.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   email_worker:
-    build: ./email_worker
+    build:
+      context: .
+      dockerfile: email_worker/Dockerfile
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
       - REDIS_HOST=redis
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
@@ -26,18 +45,41 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SMTP_FROM=${SMTP_FROM:-${SMTP_USER}}
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "main.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   telegram_worker:
-    build: ./telegram_worker
+    build:
+      context: .
+      dockerfile: telegram_worker/Dockerfile
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
       - REDIS_HOST=redis
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "main.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   discord_worker:
-    build: ./discord_worker
+    build:
+      context: .
+      dockerfile: discord_worker/Dockerfile
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
     environment:
       - REDIS_HOST=redis
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "main.py"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

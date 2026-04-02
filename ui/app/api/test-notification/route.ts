@@ -16,8 +16,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User profile not found" }, { status: 404 })
     }
 
-    // If a specific channel is passed, disable the others for the test run
-    const testProfile = { ...profile }
+    // If a specific channel is passed, deep-clone notifications and disable others for the test run
+    const testProfile = {
+      ...profile,
+      notifications: profile.notifications ? {
+        ...profile.notifications,
+        email: { ...profile.notifications.email },
+        telegram: { ...profile.notifications.telegram },
+        discord: { ...profile.notifications.discord },
+      } : undefined,
+    }
     if (channel && testProfile.notifications) {
       if (channel !== "email") testProfile.notifications.email.enabled = false;
       if (channel !== "telegram") testProfile.notifications.telegram.enabled = false;

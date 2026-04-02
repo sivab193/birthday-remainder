@@ -13,9 +13,11 @@ Modern serverless frontend + dockerized backend workers for reliable background 
 - **Styling**: Tailwind CSS, shadcn/ui, mobile-first, PWA ready
 - **State**: React Context API (`AuthContext`, `ThemeContext`)
 
-### 2. Backend: Python + Redis + Docker
+### 2. Backend: Python 3.12 + Redis + Docker
 - **Redis**: Message broker decoupling scheduler from workers
 - **Scheduler**: Scans Firestore for upcoming events, dispatches jobs to Redis
+  - Uses `zoneinfo.ZoneInfo` for timezone-aware event matching
+  - Uses atomic Redis `SET NX` keys with 24h TTL to avoid duplicate reminders
 - **Workers**: Independent containers (Email, Telegram, Discord) listening to Redis queues
 
 ### 3. Notification Channels

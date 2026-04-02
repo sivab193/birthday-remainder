@@ -63,7 +63,25 @@ Stores individual tracked events for users.
 ## 2. Notification Data Flow
 
 The architecture decouples the event scanning from the notification dispatching using Redis as a message broker.
+### Redis Idempotency
+The scheduler prevents duplicate notifications by reserving a send key before dispatching. The idempotency key format is:
 
+```text
+sent:{userId}:{birthdayId}:{YYYY-MM-DD}
+```
+
+### Queue Payload Schema
+The scheduler pushes event payloads into channel-specific queues with the following structure:
+
+```json
+{
+  "userId": "firebase_auth_uid",
+  "user": { ... },
+  "birthday": { ... }
+}
+```
+
+This allows workers to remain stateless and rely solely on the payload for dispatch.
 ```mermaid
 graph TD
     A[Firestore DB] -->|Queried by| B(Python Scheduler)

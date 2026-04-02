@@ -1,14 +1,14 @@
 import os
 import json
 import time
-import datetime
 import requests
 import redis
+from shared.utils import compute_age_text, format_meet_date, get_event_label, get_portal_url
 
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 r = redis.Redis(host=redis_host, port=6379, db=0)
 
-PORTAL_URL = "https://er.siv19.dev/dashboard"
+PORTAL_URL = get_portal_url()
 
 def build_embed(bday):
     name = bday.get('name', 'Someone')
@@ -19,33 +19,9 @@ def build_embed(bday):
     unknown_year = bday.get('unknownYear', False)
     timezone = bday.get('timezone', '')
 
-    event_label = event_type.capitalize() if event_type != 'birthday' else 'Birthday'
-
-    # Age/duration
-    age_text = ''
-    if not unknown_year and birthdate:
-        try:
-            b_year = int(birthdate.split('-')[0])
-            age = datetime.datetime.now().year - b_year
-            if age > 0:
-                if event_type == 'anniversary':
-                    age_text = f"{age} {'year' if age == 1 else 'years'} together 💍"
-                elif event_type == 'birthday':
-                    age_text = f"Turning {age} 🎂"
-                else:
-                    age_text = f"{age} {'year' if age == 1 else 'years'} ago"
-        except Exception:
-            pass
-
-    # Meet date
-    meet_text = ''
-    if meet_date:
-        try:
-            y, m, d = meet_date.split('-')
-            if int(y) > 1900:
-                meet_text = f"{d}/{m}/{y}"
-        except Exception:
-            pass
+    event_label = get_event_label(event_type)
+    age_text = compute_age_text(birthdate, event_type, unknown_year) or ''
+    meet_text = format_meet_date(meet_date) or ''
 
     fields = []
     if association:
@@ -85,13 +61,17 @@ def send_discord(webhook_url, bday):
 if __name__ == "__main__":
     print("Discord worker listening...")
     while True:
-        _, msg = r.brpop("discord_queue")
-        data = json.loads(msg)
+        try:
+            _, msg = r.brpop("discord_queue")
+            data = json.loads(msg)
 
-        user = data.get('user', {})
-        bday = data.get('birthday', {})
+            user = data.get('user', {})
+            bday = data.get('birthday', {})
 
-        webhook_url = user.get('notifications', {}).get('discord', {}).get('webhookUrl')
+            webhook_url = user.get('notifications', {}).get('discord', {}).get('webhookUrl')
 
-        if webhook_url:
-            send_discord(webhook_url, bday)
+            if webhook_url:
+                send_discord(webhook_url, bday)
+        except Exception as e:
+            print(f"Worker Loop Error: {e}")
+            time.sleep(1)

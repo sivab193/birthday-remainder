@@ -41,10 +41,12 @@ pnpm dev
 
 ```bash
 cd python-workers
-docker-compose up -d
+docker compose up -d
 ```
 
-### 3. MCP Server
+> Note: The scheduler requires `serviceAccountKey.json` to connect to Firestore. If it is missing, the scheduler will start in mock mode and push dummy test payloads to Redis.
+
+### 3. MCP Server (Optional)
 
 ```bash
 cd mcp-server
@@ -73,6 +75,7 @@ Set these in your [Vercel project settings](https://vercel.com/docs/environment-
 | `SMTP_USER` | ✅ | SMTP login username (e.g. `sivab@siv19.dev`) |
 | `SMTP_PASSWORD` | ✅ | SMTP login password or App Password |
 | `SMTP_FROM` | ❌ | Sender email address (default: `SMTP_USER`, e.g. `no-reply@siv19.dev`) |
+| `PORTAL_URL` | ❌ | Optional portal URL for notification links (default: `https://er.siv19.dev/dashboard`) |
 | `TELEGRAM_BOT_TOKEN` | ❌ | Telegram Bot API token (for test notifications) |
 | `CRON_SECRET` | ❌ | Bearer token for `/api/cron/remind` authorization |
 
@@ -119,6 +122,7 @@ CRON_SECRET=your_secret_here
 
 ```bash
 cd ui
+pnpm install
 pnpm test              # watch mode
 pnpm test:coverage     # single run with coverage
 ```

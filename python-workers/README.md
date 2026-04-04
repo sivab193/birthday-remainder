@@ -47,12 +47,40 @@ FIREBASE_CREDENTIALS=/app/serviceAccountKey.json
 # Email Worker (SMTP / Google Workspace)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=sivab@siv19.dev
+SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your_app_password
-SMTP_FROM=no-reply@siv19.dev
+SMTP_FROM=noreply@yourdomain.com
 
 # Telegram Worker
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+```
+
+## Testing Integration
+
+Test your notification configurations before deployment:
+
+```bash
+# Test all services at once
+python run_tests.py
+
+# Test individual services
+python tests/test_smtp.py --email "your-email@example.com" --send-test-message
+python tests/test_telegram.py --chat-id "123456789" --send-test-message
+python tests/test_discord.py --webhook-url "https://discord.com/api/webhooks/..." --send-test-message
+
+# On Linux/Mac with make
+make test-all
+
+# On Windows
+run_tests.bat
+```
+
+**Test Results:**
+- ✅ **SMTP**: Connection and authentication successful
+- ✅ **Telegram**: Bot token valid, can send messages to provided chat ID
+- ✅ **Discord**: Webhook URL valid, can post messages
+
+> **Note:** Telegram requires users to start a conversation with your bot first. Discord webhooks need valid URLs from your server settings.
 ```
 
 ## Workers
@@ -63,8 +91,41 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 | **Email** | `email_queue` | SMTP (smtplib) | Sends HTML emails with age/duration, portal link |
 | **Telegram** | `telegram_queue` | Bot API | Sends Markdown messages via Telegram bot |
 | **Discord** | `discord_queue` | Webhook | Sends rich embeds to Discord channels |
+| **Bulk Importer** | — | Firebase, CSV | One-time import of events from CSV file |
 
-## Firebase Service Account
+## Bulk Import
+
+Import events from a CSV file into Firestore. Useful for migrating from other systems.
+
+### CSV Format
+
+Create `events.csv` in this directory with columns:
+- `First Name`: Person's name
+- `Birthday`: Date in DD/MM/YYYY, DD-MMM-YY, or YYYY-MM-DD format
+- `Anniversary`: Date in same formats (optional)
+
+Example:
+```csv
+First Name,Birthday,Anniversary
+John Doe,15/08/1990,10/05/2015
+Jane Smith,1992-03-24,
+Bob Johnson,5-Jan-74,2018-06-15
+```
+
+### Running Bulk Import
+
+```bash
+# Set your user ID (get from Firebase Auth)
+export USER_UID="your-firebase-user-id"
+
+# Run the import
+make bulk-import
+
+# Or manually:
+docker compose --profile import run --rm bulk_import
+```
+
+> **Note:** The bulk importer runs once and exits. It uses the `import` Docker profile to avoid running with regular services.
 
 The scheduler needs a Firebase service account key:
 

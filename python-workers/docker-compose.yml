@@ -83,3 +83,19 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  bulk_import:
+    build:
+      context: .
+      dockerfile: bulk_import/Dockerfile
+    restart: "no"
+    environment:
+      - USER_UID=${USER_UID}
+      - DEFAULT_TIMEZONE=${DEFAULT_TIMEZONE:-America/New_York}
+      - CSV_PATH=/app/events.csv
+      - FIREBASE_CREDENTIALS=/app/serviceAccountKey.json
+    volumes:
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
+      - ./events.csv:/app/events.csv:ro
+    profiles:
+      - import

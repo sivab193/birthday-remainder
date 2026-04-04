@@ -2,7 +2,7 @@
 
 A multi-channel notification system for tracking personal events with timezone support, calendar sync, and automated reminders.
 
-**Live at:** [er.siv19.dev](https://er.siv19.dev)
+**Live at:** [your-domain.com](https://your-domain.com)
 
 ---
 
@@ -72,10 +72,10 @@ Set these in your [Vercel project settings](https://vercel.com/docs/environment-
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | ✅ | Firebase app ID |
 | `SMTP_HOST` | ❌ | SMTP server host (default: `smtp.gmail.com`) |
 | `SMTP_PORT` | ❌ | SMTP port (default: `587`) |
-| `SMTP_USER` | ✅ | SMTP login username (e.g. `sivab@siv19.dev`) |
+| `SMTP_USER` | ✅ | SMTP login username (e.g. `your-email@gmail.com`) |
 | `SMTP_PASSWORD` | ✅ | SMTP login password or App Password |
-| `SMTP_FROM` | ❌ | Sender email address (default: `SMTP_USER`, e.g. `no-reply@siv19.dev`) |
-| `PORTAL_URL` | ❌ | Optional portal URL for notification links (default: `https://er.siv19.dev/dashboard`) |
+| `SMTP_FROM` | ❌ | Sender email address (default: `SMTP_USER`, e.g. `noreply@yourdomain.com`) |
+| `PORTAL_URL` | ❌ | Optional portal URL for notification links (default: `https://your-domain.com/dashboard`) |
 | `TELEGRAM_BOT_TOKEN` | ❌ | Telegram Bot API token (for test notifications) |
 | `CRON_SECRET` | ❌ | Bearer token for `/api/cron/remind` authorization |
 
@@ -90,9 +90,9 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=sivab@siv19.dev
+SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your_app_password
-SMTP_FROM=no-reply@siv19.dev
+SMTP_FROM=noreply@yourdomain.com
 TELEGRAM_BOT_TOKEN=123456:ABC-DEF
 CRON_SECRET=your_secret_here
 ```

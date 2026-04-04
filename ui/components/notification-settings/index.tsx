@@ -363,9 +363,25 @@ export function NotificationSettings() {
                 }
               }}
             />
-            <p className="text-xs text-muted-foreground">
-              To get your Chat ID, message @userinfobot on Telegram.
-            </p>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>To get your Chat ID:</p>
+              <ol className="list-decimal list-inside ml-2 space-y-0.5">
+                <li>Click the link below to start a chat with our bot</li>
+                <li>Send any message (like "hi") to the bot</li>
+                <li>Message <code className="bg-muted px-1 rounded">@userinfobot</code> to get your Chat ID</li>
+                <li>Paste the Chat ID here</li>
+              </ol>
+              <p className="mt-2">
+                <a 
+                  href="https://t.me/your_bot_username" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  💬 Start chat with Event Reminder Bot
+                </a>
+              </p>
+            </div>
           </div>
         )}
         {profile.notifications.telegram.enabled && renderChannelControls("telegram", profile.notifications.telegram.chatId)}

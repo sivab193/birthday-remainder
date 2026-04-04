@@ -39,7 +39,7 @@ def parse_date(date_str):
         parts = date_str.split('/')
         day = parts[0].zfill(2)
         month = parts[1].zfill(2)
-        return f"1900-{month}-{day}", True
+        return f"2000-{month}-{day}", True  # Use 2000 as placeholder year for unknown years
         
     # Handle DD-MMM-YY (e.g., 5-Jan-74)
     try:

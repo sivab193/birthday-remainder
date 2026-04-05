@@ -27,7 +27,7 @@ services:
     volumes:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "main.py"]
+      test: ["CMD", "ps", "aux"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -52,7 +52,7 @@ services:
     volumes:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "main.py"]
+      test: ["CMD", "ps", "aux"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -70,7 +70,7 @@ services:
       - REDIS_HOST=redis
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "main.py"]
+      test: ["CMD", "ps", "aux"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -87,7 +87,7 @@ services:
     environment:
       - REDIS_HOST=redis
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "main.py"]
+      test: ["CMD", "ps", "aux"]
       interval: 30s
       timeout: 5s
       retries: 3

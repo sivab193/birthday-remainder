@@ -75,23 +75,29 @@ def send_verification_email(to_email, code, job_id):
 
     try:
         if SMTP_SSL:
-            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
         else:
-            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
             server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.send_message(msg)
-        server.quit()
-        print(f"✓ Verification email sent to {to_email} (job_id: {job_id})")
-        return True
+        try:
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+            print(f"✓ Verification email sent to {to_email} (job_id: {job_id})")
+            return True
+        finally:
+            server.quit()
     except Exception as e:
-        print(f"✗ SMTP Error sending verification email: {e}")
+        print(f"✗ SMTP Error sending verification email to {to_email}: {e}")
         return False
 
 def send_email(to_email, bday, user):
     if not SMTP_USER or not SMTP_PASSWORD:
         print("Missing SMTP credentials (SMTP_USER or SMTP_PASSWORD)")
-        return
+        return False
+    
+    if not to_email:
+        print("Missing email address for birthday reminder")
+        return False
 
     name = bday.get('name', 'Someone')
     association = bday.get('association') or bday.get('company', '')
@@ -145,16 +151,20 @@ def send_email(to_email, bday, user):
 
     try:
         if SMTP_SSL:
-            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT)
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
         else:
-            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT)
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
             server.starttls()
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        server.send_message(msg)
-        server.quit()
-        print(f"Email sent via SMTP to {to_email}")
+        try:
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+            print(f"✓ Birthday email sent to {to_email} for {name}")
+            return True
+        finally:
+            server.quit()
     except Exception as e:
-        print(f"SMTP Error: {e}")
+        print(f"✗ SMTP Error sending birthday email to {to_email}: {e}")
+        return False
 
 if __name__ == "__main__":
     print(f"Email worker listening on {redis_host}...")
@@ -164,12 +174,18 @@ if __name__ == "__main__":
         try:
             # Use BRPOP with timeout to listen to multiple queues
             # Priority: check verification queue first, then birthday queue
-            queue_name, raw = r.brpop(["email_verification_queue", "email_queue"], timeout=1)
-            
-            if queue_name is None:
+            result = r.brpop(["email_verification_queue", "email_queue"], timeout=1)
+            if not result:
                 continue
             
-            data = json.loads(raw)
+            queue_name, raw = result
+            
+            # Parse JSON safely
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError as e:
+                print(f"✗ Failed to parse message from {queue_name}: {e}")
+                continue
             
             # Handle verification email jobs
             if queue_name == b"email_verification_queue":
@@ -177,22 +193,31 @@ if __name__ == "__main__":
                 code = data.get('code')
                 job_id = data.get('id')
                 
-                if to_email and code:
-                    success = send_verification_email(to_email, code, job_id)
-                    
-                    # Update job status in Firestore
-                    if db and job_id:
-                        try:
-                            db.collection('email_jobs').document(job_id).update({
-                                'status': 'sent' if success else 'failed'
-                            })
-                        except Exception as e:
-                            print(f"Error updating job status: {e}")
+                # Validate required fields
+                if not to_email or not code or not job_id:
+                    print(f"✗ Invalid verification job data: missing required fields")
+                    continue
+                
+                success = send_verification_email(to_email, code, job_id)
+                
+                # Update job status in Firestore
+                if db and job_id:
+                    try:
+                        db.collection('email_jobs').document(job_id).update({
+                            'status': 'sent' if success else 'failed'
+                        })
+                    except Exception as e:
+                        print(f"✗ Error updating job status for {job_id}: {e}")
             
             # Handle birthday reminder emails
             else:
                 user = data.get('user', {})
                 bday = data.get('birthday', {})
+                
+                # Validate required fields
+                if not user or not bday:
+                    print(f"✗ Invalid birthday email data: missing user or birthday")
+                    continue
                 
                 to_email = user.get('notifications', {}).get('email', {}).get('address')
                 if not to_email:
@@ -200,7 +225,12 @@ if __name__ == "__main__":
 
                 if to_email:
                     send_email(to_email, bday, user)
+                else:
+                    print(f"✗ No email address found for birthday reminder")
                     
+        except redis.ConnectionError as e:
+            print(f"✗ Redis Connection Error: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
         except Exception as e:
-            print(f"Worker Loop Error: {e}")
+            print(f"✗ Worker Loop Error: {e}")
             time.sleep(1)
